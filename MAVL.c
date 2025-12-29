@@ -170,6 +170,24 @@ typedef struct{
 	//want the logic be
 	//These same rules apply for:ROL
 	void ror(CPU* cpu, uint8_t reg);
+	//Rotates the number to the left maintaining MSB
+	//by substituting it to the carry flag value
+	//e.g: C_FLAG = 0, content of R0: 1010 1111 
+	//ROR R0 => 0101 0111 and 	MSB becomes the new carry -> C_FLAG = 0
+	//Affected flags: C_FLAG,N_flag
+	//Notes: you might need to set or reset carry depending on what u 
+	//want the logic be
+	//These same rules apply for:ROR
+	void rol(CPU* cpu,uint8_t regNumber);
+	//Logic Shift Left
+	//it shifts the number to the left and then place the carry bit to the LSB
+	//TODO: More detailed description
+	void lol(CPU* cpu, uint8_t regNumber);
+	//Logic Shift Right
+	//It shifts the number to the right and then place the carry bit to the MSB
+	//TODO: More detailed description
+	void lor(CPU* cpu, uint8_t regNumber);
+
 
 //Initializes the cpu and resets each value to 0
 void init_cpu(CPU* cpu){
@@ -709,6 +727,61 @@ void ror(CPU* cpu, uint8_t reg){
 
 	//Checks if the new R[reg] MSB is 1 to toggle or not toggle the N_FLAG
 	cpu -> sreg = (cpu -> reg[reg] >> 7) == 1 ? cpu -> sreg | N_FLAG: cpu -> sreg & N_FLAG;
+}
+
+//Rotates the number to the left maintaining MSB
+//by substituting it to the carry flag value
+//e.g: C_FLAG = 0, content of R0: 1010 1111 
+//ROR R0 => 0101 0111 and 	MSB becomes the new carry -> C_FLAG = 0
+//Affected flags: C_FLAG,N_flag
+//Notes: you might need to set or reset carry depending on what u 
+//want the logic be
+//These same rules apply for:ROR
+void rol(CPU* cpu,uint8_t regNumber){
+
+	//Stores the MSB for adjusting the C_Flag
+	//Since carry flag is the LSB we shift the MSB by 7 locations
+	//making it located at the MSB whether it was 0 or 1
+	//P.S:excuse the naming of the variable as 'MSB'
+	uint8_t MSB = cpu -> reg[regNumber] >> 7;
+
+	//Mask the status register at the carry flag to only extract the carry value
+	//which is located at the LSB then we shift the content of R[reg] by 7 bits 
+	//then we add them and update the value of R[reg] to the new shifted value
+	cpu -> reg[regNumber] = ((cpu -> sreg & C_FLAG) >> 7) + (cpu -> reg[regNumber] << 1);
+
+	//OR the status register with the value of 'MSB' to change the C_FLAG
+	//depending on the value of old R[reg] MSB value.
+	cpu -> sreg |= (MSB << 7);
+
+	//Checks if the new R[reg] MSB is 1 to toggle or not toggle the N_FLAG
+	cpu -> sreg = (cpu -> reg[regNumber] >> 7) == 1 ? cpu -> sreg | N_FLAG: cpu -> sreg & N_FLAG;
+
+	//TODO:Check if implementation misses something
+}
+
+//Logic Shift Left
+//it shifts the number to the left and then place the carry bit to the LSB
+//TODO: More detailed description
+void lol(CPU* cpu, uint8_t regNumber){
+
+	//Mask the status register at the carry flag to only extract carry value
+	cpu -> reg[regNumber] = ((cpu -> sreg & C_FLAG) >> 7) + (cpu -> reg[regNumber] << 1);
+
+	//TODO:Check for further deeper implementation and Case study
+
+}
+
+//Logic Shift Right
+//It shifts the number to the right and then place the carry bit to the MSB
+//TODO: More detailed description
+void lor(CPU* cpu, uint8_t regNumber){
+
+	//Masks the status register at the carry flag to only extract carry
+	cpu -> reg[regNumber] = (cpu -> sreg & C_FLAG) + (cpu -> reg[regNumber] >> 1);
+
+	//TODO:Check for further deeper implementation and Case study
+
 }
 
 //main function
